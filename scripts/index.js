@@ -3,6 +3,10 @@ const profilePopup = document.querySelector('.popup_type_edit');
 const cardPopup = document.querySelector('.popup_type_new-card');
 const imagePopup = document.querySelector('.popup_type_image');
 
+// Плавное открытие и закрытие попапов
+const popups = document.querySelectorAll('.popup');
+popups.forEach(popup => popup.classList.add('popup_is-animated'));
+
 // Открыть попап
 function openModal(popup) {
   popup.classList.add('popup_is-opened');
@@ -12,6 +16,10 @@ function openModal(popup) {
 function closeModal(popup) {
   popup.classList.remove('popup_is-opened');
 }
+
+// Кнопка закрытия попапа с картинкой
+const imageCloseButton = imagePopup.querySelector('.popup__close');
+imageCloseButton.addEventListener('click', () => closeModal(imagePopup));
 
 // DOM-элементы профиля
 const profileEditButton = document.querySelector('.profile__edit-button');
