@@ -21,6 +21,16 @@ function closeModal(popup) {
   popup.classList.remove('popup_is-opened');
 }
 
+// Добавляем закрытие по клику на оверлей
+popups.forEach(popup => {
+  popup.addEventListener('mousedown', (evt) => {
+    if (evt.target === popup) {
+      closeModal(popup);
+      resetFormErrors(popup.querySelector('form'));
+    }
+  });
+});
+
 // Кнопка закрытия попапа с картинкой
 const imageCloseButton = imagePopup.querySelector('.popup__close');
 imageCloseButton.addEventListener('click', () => closeModal(imagePopup));
