@@ -7,9 +7,20 @@ const imagePopup = document.querySelector('.popup_type_image');
 const popups = document.querySelectorAll('.popup');
 popups.forEach(popup => popup.classList.add('popup_is-animated'));
 
+// Универсальный обработчик закрытия попапа при нажатии клавиши Esc
+function closeByEsc(evt) {
+  if (evt.key === 'Escape') {
+    const openedPopup = document.querySelector('.popup_is-opened');
+    if (openedPopup) {
+      closeModal(openedPopup);
+    }
+  }
+}
+
 // Открыть попап
 function openModal(popup) {
   popup.classList.add('popup_is-opened');
+  document.addEventListener('keydown', closeByEsc);
 }
 
 // Закрыть попап
@@ -19,6 +30,7 @@ function closeModal(popup) {
     resetFormErrors(form);
   }
   popup.classList.remove('popup_is-opened');
+  document.removeEventListener('keydown', closeByEsc);
 }
 
 // Добавляем закрытие по клику на оверлей
