@@ -1,7 +1,20 @@
-import '../pages/index.css';
-import { resetFormErrors } from './validate.js';
+import '../../pages/index.css';
+import avatarImage from '../../images/avatar.jpg';
+
+import { enableValidation, resetFormErrors } from './validate.js';
 import { initialCards } from './cards.js';
-import avatarImage from '../images/avatar.jpg';
+import { openModal, closeModal, setOverlayCloseHandler } from './modal.js';
+import { createCard } from './card.js';
+
+// Объект с настройками валидации
+const validationSettings = {
+  formSelector: '.popup__form',
+  inputSelector: '.popup__input',
+  submitButtonSelector: '.popup__button',
+  inactiveButtonClass: 'popup__button_disabled',
+  inputErrorClass: 'popup__input_type_error',
+  errorClass: 'popup__error_visible'
+};
 
 // Установка аватара
 const profileImage = document.querySelector('.profile__image');
@@ -16,39 +29,11 @@ const imagePopup = document.querySelector('.popup_type_image');
 const popups = document.querySelectorAll('.popup');
 popups.forEach(popup => popup.classList.add('popup_is-animated'));
 
-// Универсальный обработчик закрытия попапа при нажатии клавиши Esc
-function closeByEsc(evt) {
-  if (evt.key === 'Escape') {
-    const openedPopup = document.querySelector('.popup_is-opened');
-    if (openedPopup) {
-      closeModal(openedPopup);
-    }
-  }
-}
-
-// Открыть попап
-function openModal(popup) {
-  popup.classList.add('popup_is-opened');
-  document.addEventListener('keydown', closeByEsc);
-}
-
-// Закрыть попап
-function closeModal(popup) {
-  const form = popup.querySelector('.popup__form');
-  if (form) {
-    resetFormErrors(form);
-  }
-  popup.classList.remove('popup_is-opened');
-  document.removeEventListener('keydown', closeByEsc);
-}
-
-// Добавляем закрытие по клику на оверлей
+// Универсальный обработчик закрытия по оверлею и очистка ошибок
 popups.forEach(popup => {
-  popup.addEventListener('mousedown', (evt) => {
-    if (evt.target === popup) {
-      closeModal(popup);
-      resetFormErrors(popup.querySelector('form'));
-    }
+  setOverlayCloseHandler(popup, (popupElement) => {
+    resetFormErrors(popupElement, validationSettings);
+    closeModal(popupElement);
   });
 });
 
@@ -70,7 +55,7 @@ const profileDescription = document.querySelector('.profile__description');
 function handleEditButtonClick() {
   nameInput.value = profileTitle.textContent;
   jobInput.value = profileDescription.textContent;
-  resetFormErrors(profileFormElement);
+  resetFormErrors(profileFormElement, validationSettings);
   openModal(profilePopup);
 }
 
@@ -94,11 +79,27 @@ const cardFormElement = document.forms['new-place'];
 const cardNameInput = cardFormElement.elements['place-name'];
 const cardLinkInput = cardFormElement.elements['link'];
 
+// Список для добавления карточек
+const placesList = document.querySelector('.places__list');
+
 // Открытие формы добавления карточки
 function handleAddCardButtonClick() {
   cardNameInput.value = '';
   cardLinkInput.value = '';
+  resetFormErrors(cardFormElement, validationSettings);
   openModal(cardPopup);
+}
+
+// Обработчик открытия изображения в попапе
+function handleCardImageClick(cardData) {
+  const popupImage = imagePopup.querySelector('.popup__image');
+  const popupCaption = imagePopup.querySelector('.popup__caption');
+
+  popupImage.src = cardData.link;
+  popupImage.alt = cardData.name;
+  popupCaption.textContent = cardData.name;
+
+  openModal(imagePopup);
 }
 
 // Отправка формы добавления карточки
@@ -106,13 +107,15 @@ function handleCardFormSubmit(evt) {
   evt.preventDefault();
 
   const newCardData = {
-    name: cardNameInput.value,
-    link: cardLinkInput.value
+    name: cardNameInput.value.trim(),
+    link: cardLinkInput.value.trim()
   };
 
-  const newCard = createCard(newCardData);
-  placesList.prepend(newCard);
-  closeModal(cardPopup);
+  if (newCardData.name && newCardData.link) {
+    const newCard = createCard(newCardData, '#card-template', handleCardImageClick);
+    placesList.prepend(newCard);
+    closeModal(cardPopup);
+  }
 }
 
 // Обработчики
@@ -120,51 +123,11 @@ addCardButton.addEventListener('click', handleAddCardButtonClick);
 cardCloseButton.addEventListener('click', () => closeModal(cardPopup));
 cardFormElement.addEventListener('submit', handleCardFormSubmit);
 
-// @todo: Темплейт карточки
-const cardTemplate = document.querySelector('#card-template').content;
-
-// @todo: DOM узлы
-const placesList = document.querySelector('.places__list');
-
-// @todo: Функция создания карточки
-function createCard(cardData) {
-  const cardElement = cardTemplate.cloneNode(true).querySelector('li');
-  const image = cardElement.querySelector('.card__image');
-  const title = cardElement.querySelector('.card__title');
-  const likeButton = cardElement.querySelector('.card__like-button');
-  const deleteButton = cardElement.querySelector('.card__delete-button');
-
-  image.src = cardData.link;
-  image.alt = cardData.name;
-  title.textContent = cardData.name;
-
-  // Лайк
-  likeButton.addEventListener('click', () => {
-    likeButton.classList.toggle('card__like-button_is-active');
-  });
-
-  // Удаление карточки
-  deleteButton.addEventListener('click', () => {
-    cardElement.remove();
-  });
-
-  // Открытие изображения в попапе
-  image.addEventListener('click', () => {
-    const popupImage = imagePopup.querySelector('.popup__image');
-    const popupCaption = imagePopup.querySelector('.popup__caption');
-
-    popupImage.src = cardData.link;
-    popupImage.alt = cardData.name;
-    popupCaption.textContent = cardData.name;
-
-    openModal(imagePopup);
-  });
-
-  return cardElement;
-}
-
-// @todo: Вывести карточки на страницу
+// Вывести начальные карточки на страницу
 initialCards.forEach((cardData) => {
-  const card = createCard(cardData);
+  const card = createCard(cardData, '#card-template', handleCardImageClick);
   placesList.appendChild(card);
 });
+
+// Включить валидацию форм
+enableValidation(validationSettings);

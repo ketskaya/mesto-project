@@ -4,7 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 module.exports = {
-  entry: './src/scripts/index.js',
+  entry: './src/scripts/components/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'main.js',
@@ -55,12 +55,3 @@ module.exports = {
     minimizer: [`...`, new CssMinimizerPlugin()]
   }
 };
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-
-plugins: [
-  new CopyWebpackPlugin({
-    patterns: [
-      { from: 'src/images', to: 'assets' }
-    ]
-  })
-]
