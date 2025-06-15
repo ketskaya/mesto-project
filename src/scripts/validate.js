@@ -58,6 +58,7 @@ function enableValidation(formSelector) {
 
 // Очистка ошибок и сброс стилей инпутов
 function resetFormErrors(formElement) {
+  if (!formElement) return;
   const inputList = Array.from(formElement.querySelectorAll('.popup__input'));
   inputList.forEach((inputElement) => {
     const errorElement = formElement.querySelector(`.${inputElement.name}-error`);
@@ -74,3 +75,6 @@ enableValidation('form[name="edit-profile"]');
 
 // Включить валидацию формы добавления нового места
 enableValidation('form[name="new-place"]');
+
+// Экспорт
+export { resetFormErrors };
