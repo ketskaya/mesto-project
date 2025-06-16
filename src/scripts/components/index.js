@@ -119,7 +119,7 @@ function handleCardFormSubmit(evt) {
   if (newCardData.name && newCardData.link) {
     addNewCard(newCardData.name, newCardData.link)
       .then((createdCard) => {
-        const newCard = createCard(createdCard, '#card-template', handleCardImageClick);
+        const newCard = createCard(createdCard, '#card-template', handleCardImageClick, currentUserId);
         placesList.prepend(newCard);
         closeModal(cardPopup);
       })
@@ -135,14 +135,16 @@ cardCloseButton.addEventListener('click', () => closeModal(cardPopup));
 cardFormElement.addEventListener('submit', handleCardFormSubmit);
 
 // Загрузка данных пользователя и карточки с сервера
+let currentUserId;
 Promise.all([getUserInfo(), getInitialCards()])
   .then(([userData, cards]) => {
+    currentUserId = userData._id;
     profileTitle.textContent = userData.name;
     profileDescription.textContent = userData.about;
     profileImage.style.backgroundImage = `url(${userData.avatar})`;
 
     cards.forEach((cardData) => {
-      const card = createCard(cardData, '#card-template', handleCardImageClick);
+      const card = createCard(cardData, '#card-template', handleCardImageClick, currentUserId);
       placesList.appendChild(card);
     });
   })
