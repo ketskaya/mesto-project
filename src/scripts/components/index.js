@@ -1,8 +1,6 @@
 import '../../pages/index.css';
-import avatarImage from '../../images/avatar.jpg';
-
+import { getUserInfo, getInitialCards, updateUserInfo, addNewCard } from './api.js';
 import { enableValidation, resetFormErrors } from './validate.js';
-import { initialCards } from './cards.js';
 import { openModal, closeModal, setOverlayCloseHandler } from './modal.js';
 import { createCard } from './card.js';
 
@@ -18,7 +16,6 @@ const validationSettings = {
 
 // Установка аватара
 const profileImage = document.querySelector('.profile__image');
-profileImage.style.backgroundImage = `url(${avatarImage})`;
 
 // Попапы
 const profilePopup = document.querySelector('.popup_type_edit');
@@ -62,9 +59,17 @@ function handleEditButtonClick() {
 // Обработка сохранения формы
 function handleProfileFormSubmit(evt) {
   evt.preventDefault();
-  profileTitle.textContent = nameInput.value;
-  profileDescription.textContent = jobInput.value;
-  closeModal(profilePopup);
+  const name = nameInput.value.trim();
+  const about = jobInput.value.trim();
+  updateUserInfo(name, about)
+    .then((updatedUser) => {
+      profileTitle.textContent = updatedUser.name;
+      profileDescription.textContent = updatedUser.about;
+      closeModal(profilePopup);
+    })
+    .catch((err) => {
+      console.error('Ошибка при обновлении профиля:', err);
+    });
 }
 
 // Обработчики
@@ -112,10 +117,16 @@ function handleCardFormSubmit(evt) {
   };
 
   if (newCardData.name && newCardData.link) {
-    const newCard = createCard(newCardData, '#card-template', handleCardImageClick);
-    placesList.prepend(newCard);
-    closeModal(cardPopup);
-  }
+    addNewCard(newCardData.name, newCardData.link)
+      .then((createdCard) => {
+        const newCard = createCard(createdCard, '#card-template', handleCardImageClick);
+        placesList.prepend(newCard);
+        closeModal(cardPopup);
+      })
+      .catch((err) => {
+        console.error('Ошибка при добавлении карточки:', err);
+      });
+    }
 }
 
 // Обработчики
@@ -123,11 +134,21 @@ addCardButton.addEventListener('click', handleAddCardButtonClick);
 cardCloseButton.addEventListener('click', () => closeModal(cardPopup));
 cardFormElement.addEventListener('submit', handleCardFormSubmit);
 
-// Вывести начальные карточки на страницу
-initialCards.forEach((cardData) => {
-  const card = createCard(cardData, '#card-template', handleCardImageClick);
-  placesList.appendChild(card);
-});
+// Загрузка данных пользователя и карточки с сервера
+Promise.all([getUserInfo(), getInitialCards()])
+  .then(([userData, cards]) => {
+    profileTitle.textContent = userData.name;
+    profileDescription.textContent = userData.about;
+    profileImage.style.backgroundImage = `url(${userData.avatar})`;
+
+    cards.forEach((cardData) => {
+      const card = createCard(cardData, '#card-template', handleCardImageClick);
+      placesList.appendChild(card);
+    });
+  })
+  .catch((err) => {
+    console.error('Ошибка при инициализации:', err);
+  });
 
 // Включить валидацию форм
 enableValidation(validationSettings);
