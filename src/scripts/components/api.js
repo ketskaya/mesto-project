@@ -65,3 +65,34 @@ export const deleteCard = (cardId) => {
     return Promise.reject(`Ошибка: ${res.status}`);
   });
 };
+
+// Поставить лайк
+export const likeCard = (cardId) => {
+  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+    method: 'PUT',
+    headers: config.headers
+  })
+  .then(res => res.ok ? res.json() : Promise.reject(`Ошибка: ${res.status}`));
+};
+
+// Убрать лайк
+export const unlikeCard = (cardId) => {
+  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+    method: 'DELETE',
+    headers: config.headers
+  })
+  .then(res => res.ok ? res.json() : Promise.reject(`Ошибка: ${res.status}`));
+};
+
+// Обновление аватара пользователя
+export const updateAvatar = (avatar) => {
+  return fetch(`${config.baseUrl}/users/me/avatar`, {
+    method: 'PATCH',
+    headers: config.headers,
+    body: JSON.stringify({ avatar })
+  })
+  .then(res => {
+    if (res.ok) return res.json();
+    return Promise.reject(`Ошибка: ${res.status}`);
+  });
+};
