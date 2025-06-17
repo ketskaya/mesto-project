@@ -216,4 +216,3 @@ Promise.all([getUserInfo(), getInitialCards()])
 
 // Включить валидацию форм
 enableValidation(validationSettings);
-
